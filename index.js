@@ -7,7 +7,8 @@ import {
   Text,
   TextInput,
   View,
-  ViewPropTypes as RNViewPropTypes
+  ScrollView,
+  ViewPropTypes as RNViewPropTypes,
 } from 'react-native';
 
 const ViewPropTypes = RNViewPropTypes || View.propTypes;
@@ -37,10 +38,7 @@ class Autocomplete extends Component {
     /*
      * Set `keyboardShouldPersistTaps` to true if RN version is <= 0.39.
      */
-    keyboardShouldPersistTaps: PropTypes.oneOfType([
-      PropTypes.string,
-      PropTypes.bool
-    ]),
+    keyboardShouldPersistTaps: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
     /*
      * These styles will be applied to the container which surrounds
      * the result list.
@@ -75,10 +73,6 @@ class Autocomplete extends Component {
      * renders custom TextInput. All props passed to this function.
      */
     renderTextInput: PropTypes.func,
-    /**
-    * `rowHasChanged` will be used for data objects comparison for dataSource
-    */
-    rowHasChanged: PropTypes.func
   };
 
   static defaultProps = {
@@ -89,13 +83,12 @@ class Autocomplete extends Component {
     renderItem: rowData => <Text>{rowData}</Text>,
     renderSeparator: null,
     renderTextInput: props => <TextInput {...props} />,
-    rowHasChanged: (r1, r2) => r1 !== r2
   };
 
   constructor(props) {
     super(props);
 
-    const ds = new ListView.DataSource({ rowHasChanged: props.rowHasChanged });
+    const ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
     this.state = { dataSource: ds.cloneWithRows(props.data) };
     this.resultList = null;
   }
@@ -129,12 +122,14 @@ class Autocomplete extends Component {
       renderSeparator,
       keyboardShouldPersistTaps,
       onEndReached,
-      onEndReachedThreshold
+      onEndReachedThreshold,
     } = this.props;
 
     return (
       <ListView
-        ref={(resultList) => { this.resultList = resultList; }}
+        ref={(resultList) => {
+          this.resultList = resultList;
+        }}
         dataSource={dataSource}
         keyboardShouldPersistTaps={keyboardShouldPersistTaps}
         renderRow={renderItem}
@@ -142,6 +137,7 @@ class Autocomplete extends Component {
         onEndReached={onEndReached}
         onEndReachedThreshold={onEndReachedThreshold}
         style={[styles.list, listStyle]}
+        showsVerticalScrollIndicator
       />
     );
   }
@@ -152,7 +148,7 @@ class Autocomplete extends Component {
       style: [styles.input, style],
       ref: ref => (this.textInput = ref),
       onEndEditing: e => onEndEditing && onEndEditing(e),
-      ...this.props
+      ...this.props,
     };
 
     return renderTextInput(props);
@@ -166,7 +162,7 @@ class Autocomplete extends Component {
       inputContainerStyle,
       listContainerStyle,
       onShowResults,
-      onStartShouldSetResponderCapture
+      onStartShouldSetResponderCapture,
     } = this.props;
     const showResults = dataSource.getRowCount() > 0;
 
@@ -175,9 +171,7 @@ class Autocomplete extends Component {
 
     return (
       <View style={[styles.container, containerStyle]}>
-        <View style={[styles.inputContainer, inputContainerStyle]}>
-          {this.renderTextInput()}
-        </View>
+        <View style={[styles.inputContainer, inputContainerStyle]}>{this.renderTextInput()}</View>
         {!hideResults && (
           <View
             style={listContainerStyle}
@@ -194,37 +188,36 @@ class Autocomplete extends Component {
 const border = {
   borderColor: '#b9b9b9',
   borderRadius: 1,
-  borderWidth: 1
+  borderWidth: 1,
 };
 
 const androidStyles = {
   container: {
-    flex: 1
+    flex: 1,
   },
   inputContainer: {
     ...border,
-    marginBottom: 0
+    marginBottom: 0,
   },
   list: {
     ...border,
     backgroundColor: 'white',
     borderTopWidth: 0,
     margin: 10,
-    marginTop: 0
-  }
+    marginTop: 0,
+  },
 };
 
 const iosStyles = {
   container: {
-    zIndex: 1
+    zIndex: 1,
   },
   inputContainer: {
-    ...border
+    ...border,
   },
   input: {
-    backgroundColor: 'white',
-    height: 40,
-    paddingLeft: 3
+    height: 35,
+    paddingLeft: 3,
   },
   list: {
     ...border,
@@ -232,20 +225,19 @@ const iosStyles = {
     borderTopWidth: 0,
     left: 0,
     position: 'absolute',
-    right: 0
-  }
+    right: 0,
+  },
 };
 
 const styles = StyleSheet.create({
   input: {
-    backgroundColor: 'white',
-    height: 40,
-    paddingLeft: 3
+    height: 30,
+    paddingLeft: 3,
   },
   ...Platform.select({
     android: { ...androidStyles },
-    ios: { ...iosStyles }
-  })
+    ios: { ...iosStyles },
+  }),
 });
 
 export default Autocomplete;
